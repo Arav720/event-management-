@@ -65,7 +65,10 @@ export default function CreateEventForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate() || !user) return;
+    if (!validate()) return;
+
+    const userId = user?.id || "guest";
+    const userName = user?.name || "Guest User";
 
     const tags = tagsInput
       .split(",")
@@ -82,8 +85,8 @@ export default function CreateEventForm({
       capacity: Number(capacity),
       price: Number(price) || 0,
       tags,
-      organizerId: user.id,
-      organizerName: user.name,
+      organizerId: userId,
+      organizerName: userName,
     });
 
     setTitle("");

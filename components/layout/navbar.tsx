@@ -17,15 +17,14 @@ import { useState } from "react";
 interface NavbarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  userType?: "organizer" | "attendee"; // Add userType prop to determine which tabs to show
 }
 
-export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
+export default function Navbar({ activeTab, onTabChange, userType = "attendee" }: NavbarProps) {
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  if (!user) return null;
-
-  const isOrganizer = user.role === "organizer";
+  const isOrganizer = user?.role === "organizer" || userType === "organizer";
 
   const tabs = isOrganizer
     ? [
@@ -48,9 +47,11 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
               <Sparkles className="w-4 h-4 text-white" />
             </div>
             <span className="font-bold text-lg text-foreground tracking-tight">Eventify</span>
-            <span className="hidden sm:inline-block text-xs px-2 py-0.5 rounded-full bg-primary-light text-primary font-medium capitalize">
-              {user.role}
-            </span>
+            {user && (
+              <span className="hidden sm:inline-block text-xs px-2 py-0.5 rounded-full bg-primary-light text-primary font-medium capitalize">
+                {user.role}
+              </span>
+            )}
           </div>
 
           {/* Desktop Nav */}
@@ -73,20 +74,29 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
 
           {/* User */}
           <div className="hidden md:flex items-center gap-3">
-            <div className="text-right mr-1">
-              <p className="text-sm font-medium text-foreground leading-tight">{user.name}</p>
-              <p className="text-[11px] text-muted capitalize">{user.role}</p>
-            </div>
-            <div className="w-9 h-9 rounded-full bg-linear-to-br from-primary to-primary-hover text-white flex items-center justify-center text-sm font-bold shadow-sm">
-              {user.name.charAt(0)}
-            </div>
-            <button
-              onClick={logout}
-              className="p-2 rounded-lg text-muted hover:text-danger hover:bg-red-50 transition-colors"
-              title="Sign out"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            {user ? (
+              <>
+                <div className="text-right mr-1">
+                  <p className="text-sm font-medium text-foreground leading-tight">{user.name}</p>
+                  <p className="text-[11px] text-muted capitalize">{user.role}</p>
+                </div>
+                <div className="w-9 h-9 rounded-full bg-linear-to-br from-primary to-primary-hover text-white flex items-center justify-center text-sm font-bold shadow-sm">
+                  {user.name.charAt(0)}
+                </div>
+                <button
+                  onClick={logout}
+                  className="p-2 rounded-lg text-muted hover:text-danger hover:bg-red-50 transition-colors"
+                  title="Sign out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </>
+            ) : (
+              <div className="text-right mr-1">
+                <p className="text-sm font-medium text-foreground leading-tight">Guest User</p>
+                <p className="text-[11px] text-muted capitalize">{userType}</p>
+              </div>
+            )}
           </div>
 
           {/* Mobile toggle */}
@@ -120,21 +130,35 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
             </button>
           ))}
           <div className="border-t border-border pt-3 mt-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-primary-hover text-white flex items-center justify-center text-sm font-bold">
-                {user.name.charAt(0)}
+            {user ? (
+              <>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-primary-hover text-white flex items-center justify-center text-sm font-bold">
+                    {user.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{user.name}</p>
+                    <p className="text-xs text-muted capitalize">{user.role}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={logout}
+                  className="p-2 rounded-lg text-muted hover:text-danger hover:bg-red-50 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-primary-hover text-white flex items-center justify-center text-sm font-bold">
+                  G
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">Guest User</p>
+                  <p className="text-xs text-muted capitalize">{userType}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-foreground">{user.name}</p>
-                <p className="text-xs text-muted capitalize">{user.role}</p>
-              </div>
-            </div>
-            <button
-              onClick={logout}
-              className="p-2 rounded-lg text-muted hover:text-danger hover:bg-red-50 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            )}
           </div>
         </div>
       )}

@@ -25,9 +25,10 @@ export default function MyRegistrations() {
   const [toast, setToast] = useState<string | null>(null);
   const [cancelConfirm, setCancelConfirm] = useState<string | null>(null);
 
-  if (!user) return null;
+  // Use guest user ID if not logged in
+  const userId = user?.id || "guest";
 
-  const regs = getUserRegistrations(user.id);
+  const regs = getUserRegistrations(userId);
   const registeredEvents = regs
     .map((r) => {
       const event = getEventById(r.eventId);
@@ -41,7 +42,8 @@ export default function MyRegistrations() {
   };
 
   const handleCancel = (eventId: string) => {
-    cancelRegistration(eventId, user.id);
+    const userId = user?.id || "guest";
+    cancelRegistration(eventId, userId);
     showToast("Registration cancelled.");
     setCancelConfirm(null);
   };

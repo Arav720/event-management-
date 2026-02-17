@@ -46,15 +46,17 @@ export default function BrowseEvents() {
   };
 
   const handleRegister = (eventId: string) => {
-    if (!user) return;
-    const success = registerForEvent(eventId, user.id);
+    // Use guest user ID if not logged in
+    const userId = user?.id || "guest";
+    const success = registerForEvent(eventId, userId);
     if (success) showToast("Registered successfully! 🎉");
     else showToast("Registration failed. Event may be full.");
   };
 
   const handleCancel = (eventId: string) => {
-    if (!user) return;
-    cancelRegistration(eventId, user.id);
+    // Use guest user ID if not logged in
+    const userId = user?.id || "guest";
+    cancelRegistration(eventId, userId);
     showToast("Registration cancelled.");
   };
 

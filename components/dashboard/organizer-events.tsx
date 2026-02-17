@@ -25,9 +25,10 @@ export default function OrganizerEvents({
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
-  if (!user) return null;
+  // Use guest user ID if not logged in
+  const userId = user?.id || "guest";
 
-  const myEvents = getEventsByOrganizer(user.id);
+  const myEvents = getEventsByOrganizer(userId);
 
   const showToast = (message: string) => {
     setToast(message);

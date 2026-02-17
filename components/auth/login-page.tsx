@@ -6,7 +6,7 @@ import { Role } from "@/lib/types";
 import { Eye, EyeOff, Mail, Lock, User, Sparkles, CalendarDays, Mic2 } from "lucide-react";
 
 export default function LoginPage() {
-  const { login, register } = useAuth();
+  const { login, register, isLoading } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -28,20 +28,20 @@ export default function LoginPage() {
     }, 200);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     if (isLogin) {
-      const success = login(email, password);
+      const success = await login(email, password);
       if (!success)
-        setError("Invalid credentials. Try the demo accounts above.");
+        setError("Invalid credentials. Please check your email and password.");
     } else {
       if (!name.trim()) { setError("Name is required"); return; }
       if (!email.trim()) { setError("Email is required"); return; }
       if (password.length < 6) { setError("Password must be at least 6 characters"); return; }
-      const success = register(name, email, password, role);
-      if (!success) setError("An account with this email already exists");
+      const success = await register(name, email, password, role);
+      if (!success) setError("Registration failed. This email may already be in use.");
     }
   };
 
@@ -65,24 +65,6 @@ export default function LoginPage() {
             isAnimating ? "opacity-0 scale-[0.98]" : "opacity-100 scale-100"
           }`}
         >
-          {/* Demo hint */}
-          {isLogin && (
-            <div className="mb-6 p-4 rounded-xl bg-primary-light/60 border border-primary/10">
-              <p className="text-sm font-semibold text-primary mb-2">Demo Accounts</p>
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2 text-xs text-muted">
-                  <Mic2 className="w-3.5 h-3.5 text-primary/60" />
-                  <span>Organizer: <code className="font-mono text-foreground bg-white/60 px-1.5 py-0.5 rounded">alex@example.com</code></span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-muted">
-                  <CalendarDays className="w-3.5 h-3.5 text-primary/60" />
-                  <span>Attendee: <code className="font-mono text-foreground bg-white/60 px-1.5 py-0.5 rounded">jordan@example.com</code></span>
-                </div>
-                <p className="text-xs text-muted/70 mt-1">Any password works</p>
-              </div>
-            </div>
-          )}
-
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Name - register only */}
             {!isLogin && (
@@ -195,9 +177,20 @@ export default function LoginPage() {
             {/* Submit */}
             <button
               type="submit"
-              className="w-full py-3 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-hover active:scale-[0.98] transition-all shadow-sm shadow-primary/20"
+              disabled={isLoading}
+              className="w-full py-3 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-hover active:scale-[0.98] transition-all shadow-sm shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLogin ? "Sign In" : "Create Account"}
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  {isLogin ? "Signing In..." : "Creating Account..."}
+                </span>
+              ) : (
+                <>{isLogin ? "Sign In" : "Create Account"}</>
+              )}
             </button>
           </form>
         </div>

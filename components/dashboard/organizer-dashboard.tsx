@@ -21,9 +21,11 @@ export default function OrganizerDashboard({
   const { user } = useAuth();
   const { getEventsByOrganizer, registrations } = useEvents();
 
-  if (!user) return null;
+  // Use guest user ID if not logged in
+  const userId = user?.id || "guest";
+  const userName = user?.name || "Guest User";
 
-  const myEvents = getEventsByOrganizer(user.id);
+  const myEvents = getEventsByOrganizer(userId);
   const totalRegistrations = myEvents.reduce((sum, e) => sum + e.registered, 0);
   const totalCapacity = myEvents.reduce((sum, e) => sum + e.capacity, 0);
   const upcomingCount = myEvents.filter((e) => e.status === "upcoming").length;
@@ -49,7 +51,7 @@ export default function OrganizerDashboard({
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
-            Welcome back, {user.name.split(" ")[0]}!
+            Welcome back, {userName.split(" ")[0]}!
           </h1>
           <p className="text-muted text-sm mt-1">
             Here&apos;s your event overview at a glance.
