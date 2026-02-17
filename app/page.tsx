@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import LoginPage from "@/components/auth/login-page";
 import Navbar from "@/components/layout/navbar";
@@ -13,15 +13,25 @@ import MyRegistrations from "@/components/dashboard/my-registrations";
 export default function Home() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch by only rendering after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Set default tab when user logs in
-  if (user && !activeTab) {
-    if (user.role === "organizer") setActiveTab("dashboard");
-    else setActiveTab("browse");
-  }
+  useEffect(() => {
+    if (user && !activeTab) {
+      if (user.role === "organizer") setActiveTab("dashboard");
+      else setActiveTab("browse");
+    } else if (!user && activeTab) {
+      setActiveTab("");
+    }
+  }, [user, activeTab]);
 
-  // Reset tab on logout
-  if (!user && activeTab) setActiveTab("");
+  // Return null on server-side and first client render to match SSR
+  if (!mounted) return null;
 
   if (!user) return <LoginPage />;
 
