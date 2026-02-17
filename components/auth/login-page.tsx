@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Role } from "@/lib/types";
-import { Eye, EyeOff, Mail, Lock, User, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, Sparkles, CalendarDays, Mic2 } from "lucide-react";
 
 export default function LoginPage() {
   const { login, register } = useAuth();
@@ -21,8 +21,11 @@ export default function LoginPage() {
     setTimeout(() => {
       setIsLogin(!isLogin);
       setError("");
+      setName("");
+      setEmail("");
+      setPassword("");
       setIsAnimating(false);
-    }, 150);
+    }, 200);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -31,7 +34,8 @@ export default function LoginPage() {
 
     if (isLogin) {
       const success = login(email, password);
-      if (!success) setError("Invalid email or password. Try: alex@example.com or jordan@example.com");
+      if (!success)
+        setError("Invalid credentials. Try the demo accounts above.");
     } else {
       if (!name.trim()) { setError("Name is required"); return; }
       if (!email.trim()) { setError("Email is required"); return; }
@@ -42,135 +46,156 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md">
-        {/* Logo / Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary mb-4">
-            <Sparkles className="w-7 h-7 text-white" />
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
+      <div className="w-full max-w-md animate-slide-up">
+        {/* Logo */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary shadow-lg shadow-primary/20 mb-5">
+            <Sparkles className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">Eventify</h1>
-          <p className="text-muted mt-1 text-sm">
-            {isLogin ? "Welcome back! Sign in to continue." : "Create your account to get started."}
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Eventify</h1>
+          <p className="text-muted mt-2 text-sm">
+            {isLogin ? "Welcome back! Sign in to your account." : "Create your account to get started."}
           </p>
         </div>
 
         {/* Card */}
         <div
-          className={`bg-card rounded-2xl shadow-sm border border-border p-8 transition-opacity duration-150 ${
-            isAnimating ? "opacity-0" : "opacity-100"
+          className={`bg-card rounded-2xl shadow-sm border border-border p-8 transition-all duration-200 ${
+            isAnimating ? "opacity-0 scale-[0.98]" : "opacity-100 scale-100"
           }`}
         >
-          {/* Demo credentials hint */}
+          {/* Demo hint */}
           {isLogin && (
-            <div className="mb-6 p-3 rounded-xl bg-primary-light text-sm text-primary">
-              <p className="font-medium">Demo Accounts:</p>
-              <p className="mt-1 text-xs text-muted">
-                Organizer: <span className="font-mono">alex@example.com</span> · Attendee: <span className="font-mono">jordan@example.com</span>
-              </p>
-              <p className="mt-0.5 text-xs text-muted">Any password works</p>
+            <div className="mb-6 p-4 rounded-xl bg-primary-light/60 border border-primary/10">
+              <p className="text-sm font-semibold text-primary mb-2">Demo Accounts</p>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 text-xs text-muted">
+                  <Mic2 className="w-3.5 h-3.5 text-primary/60" />
+                  <span>Organizer: <code className="font-mono text-foreground bg-white/60 px-1.5 py-0.5 rounded">alex@example.com</code></span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted">
+                  <CalendarDays className="w-3.5 h-3.5 text-primary/60" />
+                  <span>Attendee: <code className="font-mono text-foreground bg-white/60 px-1.5 py-0.5 rounded">jordan@example.com</code></span>
+                </div>
+                <p className="text-xs text-muted/70 mt-1">Any password works</p>
+              </div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Name - register only */}
             {!isLogin && (
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">
-                  Full Name
-                </label>
+                <label className="block text-sm font-medium text-foreground mb-2">Full Name</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted/50" />
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="John Doe"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm placeholder:text-muted/50 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-border bg-background text-foreground text-sm placeholder:text-muted/40 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none"
                   />
                 </div>
               </div>
             )}
 
+            {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">
-                Email
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">Email</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted/50" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm placeholder:text-muted/50 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-border bg-background text-foreground text-sm placeholder:text-muted/40 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none"
                 />
               </div>
             </div>
 
+            {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">
-                Password
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted/50" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm placeholder:text-muted/50 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                  className="w-full pl-11 pr-11 py-3 rounded-xl border border-border bg-background text-foreground text-sm placeholder:text-muted/40 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted/50 hover:text-foreground"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
+            {/* Role selector - register only */}
             {!isLogin && (
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">
-                  I want to
-                </label>
+                <label className="block text-sm font-medium text-foreground mb-2">I want to</label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setRole("attendee")}
-                    className={`py-2.5 px-4 rounded-xl border text-sm font-medium transition-all ${
+                    className={`group relative p-4 rounded-xl border-2 text-left transition-all ${
                       role === "attendee"
-                        ? "border-primary bg-primary-light text-primary"
-                        : "border-border text-muted hover:border-muted"
+                        ? "border-primary bg-primary-light shadow-sm"
+                        : "border-border hover:border-muted/40 bg-background"
                     }`}
                   >
-                    Attend Events
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-2 ${
+                      role === "attendee" ? "bg-primary/10" : "bg-secondary"
+                    }`}>
+                      <CalendarDays className={`w-4 h-4 ${role === "attendee" ? "text-primary" : "text-muted"}`} />
+                    </div>
+                    <p className={`text-sm font-semibold ${role === "attendee" ? "text-primary" : "text-foreground"}`}>
+                      Attend Events
+                    </p>
+                    <p className="text-xs text-muted mt-0.5">Browse & register</p>
                   </button>
                   <button
                     type="button"
                     onClick={() => setRole("organizer")}
-                    className={`py-2.5 px-4 rounded-xl border text-sm font-medium transition-all ${
+                    className={`group relative p-4 rounded-xl border-2 text-left transition-all ${
                       role === "organizer"
-                        ? "border-primary bg-primary-light text-primary"
-                        : "border-border text-muted hover:border-muted"
+                        ? "border-primary bg-primary-light shadow-sm"
+                        : "border-border hover:border-muted/40 bg-background"
                     }`}
                   >
-                    Organize Events
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-2 ${
+                      role === "organizer" ? "bg-primary/10" : "bg-secondary"
+                    }`}>
+                      <Mic2 className={`w-4 h-4 ${role === "organizer" ? "text-primary" : "text-muted"}`} />
+                    </div>
+                    <p className={`text-sm font-semibold ${role === "organizer" ? "text-primary" : "text-foreground"}`}>
+                      Organize Events
+                    </p>
+                    <p className="text-xs text-muted mt-0.5">Create & manage</p>
                   </button>
                 </div>
               </div>
             )}
 
+            {/* Error */}
             {error && (
-              <div className="p-3 rounded-xl bg-red-50 text-danger text-sm">
+              <div className="p-3 rounded-xl bg-red-50 border border-red-100 text-danger text-sm animate-slide-up">
                 {error}
               </div>
             )}
 
+            {/* Submit */}
             <button
               type="submit"
-              className="w-full py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-hover active:scale-[0.98] transition-all shadow-sm"
+              className="w-full py-3 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-hover active:scale-[0.98] transition-all shadow-sm shadow-primary/20"
             >
               {isLogin ? "Sign In" : "Create Account"}
             </button>
@@ -179,11 +204,8 @@ export default function LoginPage() {
 
         {/* Toggle */}
         <p className="text-center text-sm text-muted mt-6">
-          {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-          <button
-            onClick={switchMode}
-            className="text-primary font-semibold hover:underline"
-          >
+          {isLogin ? "Don&apos;t have an account?" : "Already have an account?"}{" "}
+          <button onClick={switchMode} className="text-primary font-semibold hover:underline">
             {isLogin ? "Sign Up" : "Sign In"}
           </button>
         </p>
