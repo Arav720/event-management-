@@ -8,7 +8,7 @@ import {
   ReactNode,
   useEffect,
 } from "react";
-import { Event, Registration } from "./types";
+import { Event, Registration, EventCategory } from "./types";
 import { mockEvents } from "./mock-data";
 import * as api from "./api";
 import type { BackendEvent } from "./api";
@@ -33,6 +33,21 @@ interface EventContextType {
 
 const EventContext = createContext<EventContextType | undefined>(undefined);
 
+// Helper to safely convert category string to EventCategory type
+function convertCategory(category: string): EventCategory {
+  const validCategories: EventCategory[] = [
+    "conference",
+    "workshop",
+    "meetup",
+    "seminar",
+    "webinar",
+    "social",
+    "other"
+  ];
+  const lowerCategory = category.toLowerCase() as EventCategory;
+  return validCategories.includes(lowerCategory) ? lowerCategory : "other";
+}
+
 // Helper to convert backend event to frontend Event type
 function convertBackendEvent(backendEvent: BackendEvent): Event {
   return {
@@ -42,7 +57,7 @@ function convertBackendEvent(backendEvent: BackendEvent): Event {
     date: new Date(backendEvent.date).toISOString().split('T')[0],
     time: backendEvent.time,
     location: backendEvent.location,
-    category: backendEvent.category.toLowerCase(),
+    category: convertCategory(backendEvent.category),
     capacity: backendEvent.resisteredUsers?.length + 100 || 100, // Estimate capacity
     registered: backendEvent.resisteredUsers?.length || 0,
     image: backendEvent.image,
