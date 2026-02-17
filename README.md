@@ -1,5 +1,18 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Event Management System
+
+A modern event management platform built with Next.js, featuring event creation, registration, and management capabilities.
+
+### Backend API
+
+The application connects to the backend API at:
+```
+https://eventflow-server-3.onrender.com
+```
+
+**API Base URL:** `https://eventflow-server-3.onrender.com/api/v1`
+
 ## Getting Started
 
 First, run the development server:

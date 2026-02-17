@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { useAuth } from "@/lib/auth-context";
+import { useState, useEffect } from "react";
 import { useEvents } from "@/lib/event-context";
-import { EventCategory } from "@/lib/types";
+import { EventCategory, Event } from "@/lib/types";
+import { createEvent, updateEvent } from "@/lib/api";
 import {
   Calendar,
   Clock,
@@ -15,6 +15,7 @@ import {
   Sparkles,
   CheckCircle2,
   ArrowLeft,
+  Upload,
 } from "lucide-react";
 
 const categories: { value: EventCategory; label: string; emoji: string }[] = [
@@ -28,12 +29,14 @@ const categories: { value: EventCategory; label: string; emoji: string }[] = [
 ];
 
 export default function CreateEventForm({
+  event,
   onSuccess,
 }: {
+  event?: Event;
   onSuccess?: () => void;
 }) {
-  const { user } = useAuth();
-  const { addEvent } = useEvents();
+  const { loadMyEvents } = useEvents();
+  const isEditMode = !!event;
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -49,6 +52,21 @@ export default function CreateEventForm({
   const [showSuccess, setShowSuccess] = useState(false);
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Initialize form with event data if editing
+  useEffect(() => {
+    if (event) {
+      setTitle(event.title);
+      setDescription(event.description);
+      setDate(event.date);
+      setTime(event.time);
+      setLocation(event.location);
+      setCategory(event.category);
+      setCapacity(event.capacity?.toString() || "");
+      setPrice(event.price?.toString() || "0");
+      setTagsInput(event.tags?.join(", ") || "");
+    }
+  }, [event]);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -72,49 +90,60 @@ export default function CreateEventForm({
     setIsSubmitting(true);
 
     try {
-      const userId = user?.id || "guest";
-      const userName = user?.name || "Guest User";
+      // Create FormData for multipart/form-data request
+      const formData = new FormData();
+      
+      if (isEditMode && event) {
+        formData.append('eventId', event.id);
+      }
+      
+      formData.append('title', title.trim());
+      formData.append('description', description.trim());
+      formData.append('date', date);
+      formData.append('location', location.trim());
+      formData.append('category', category);
+      formData.append('time', time);
+      formData.append('price', price || '0');
+      
+      // Add image if selected
+      if (image) {
+        formData.append('image', image);
+      }
 
-      const tags = tagsInput
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean);
+      // Call appropriate API endpoint
+      if (isEditMode) {
+        await updateEvent(formData);
+      } else {
+        await createEvent(formData);
+      }
 
-      await addEvent({
-        title: title.trim(),
-        description: description.trim(),
-        date,
-        time,
-        location: location.trim(),
-        category,
-        capacity: Number(capacity),
-        price: Number(price) || 0,
-        tags,
-        organizerId: userId,
-        organizerName: userName,
-        image: image ? URL.createObjectURL(image) : undefined,
-      });
+      // Reload events after successful creation/update
+      await loadMyEvents();
 
-      setTitle("");
-      setDescription("");
-      setDate("");
-      setTime("");
-      setLocation("");
-      setCategory("conference");
-      setCapacity("");
-      setPrice("");
-      setTagsInput("");
-      setImage(null);
+      // Reset form only if creating (not editing)
+      if (!isEditMode) {
+        setTitle("");
+        setDescription("");
+        setDate("");
+        setTime("");
+        setLocation("");
+        setCategory("conference");
+        setCapacity("");
+        setPrice("");
+        setTagsInput("");
+        setImage(null);
+        setStep(1);
+      }
+      
       setErrors({});
-      setStep(1);
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
         onSuccess?.();
       }, 2000);
     } catch (error) {
-      console.error("Failed to create event:", error);
-      setErrors({ submit: "Failed to create event. Please try again." });
+      console.error(`Failed to ${isEditMode ? 'update' : 'create'} event:`, error);
+      setErrors({ submit: `Failed to ${isEditMode ? 'update' : 'create'} event. Please try again.` });
     } finally {
       setIsSubmitting(false);
     }
@@ -126,8 +155,12 @@ export default function CreateEventForm({
         <div className="w-20 h-20 rounded-full bg-emerald-50 flex items-center justify-center mb-5">
           <CheckCircle2 className="w-10 h-10 text-success" />
         </div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">Event Created!</h2>
-        <p className="text-sm text-muted">Your event has been published successfully.</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">
+          {isEditMode ? 'Event Updated!' : 'Event Created!'}
+        </h2>
+        <p className="text-sm text-muted">
+          Your event has been {isEditMode ? 'updated' : 'published'} successfully.
+        </p>
       </div>
     );
   }
@@ -146,8 +179,12 @@ export default function CreateEventForm({
             <Sparkles className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-foreground">Create New Event</h1>
-            <p className="text-sm text-muted">Fill in the details to publish your event.</p>
+            <h1 className="text-xl font-bold text-foreground">
+              {isEditMode ? 'Edit Event' : 'Create New Event'}
+            </h1>
+            <p className="text-sm text-muted">
+              {isEditMode ? 'Update the event details below.' : 'Fill in the details to publish your event.'}
+            </p>
           </div>
         </div>
 
@@ -339,6 +376,29 @@ export default function CreateEventForm({
               <p className="text-xs text-muted mt-1.5">Separate tags with commas</p>
             </div>
 
+            {/* Image Upload */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-foreground mb-2">
+                <Upload className="w-4 h-4 text-muted/50" />
+                Event Image {isEditMode && '(optional - leave empty to keep current)'}
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImage(e.target.files?.[0] || null)}
+                className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-light file:text-primary hover:file:bg-primary/10 cursor-pointer"
+              />
+              {image && (
+                <p className="text-xs text-muted mt-1.5">Selected: {image.name}</p>
+              )}
+            </div>
+
+            {errors.submit && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200">
+                <p className="text-sm text-danger">{errors.submit}</p>
+              </div>
+            )}
+
             {/* Buttons */}
             <div className="flex gap-3 pt-2">
               <button
@@ -351,9 +411,10 @@ export default function CreateEventForm({
               </button>
               <button
                 type="submit"
-                className="flex-1 py-3 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-hover active:scale-[0.98] transition-all shadow-sm shadow-primary/20"
+                disabled={isSubmitting}
+                className="flex-1 py-3 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-hover active:scale-[0.98] transition-all shadow-sm shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Publish Event
+                {isSubmitting ? 'Saving...' : (isEditMode ? 'Update Event' : 'Publish Event')}
               </button>
             </div>
           </div>

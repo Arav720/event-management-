@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useEvents } from "@/lib/event-context";
+import { deleteEvent as deleteEventAPI } from "@/lib/api";
+import { Event } from "@/lib/types";
+import CreateEventForm from "@/components/events/create-event-form";
 import {
   Calendar,
   Trash2,
@@ -12,6 +15,8 @@ import {
   Eye,
   PlusCircle,
   ChevronUp,
+  Edit2,
+  X,
 } from "lucide-react";
 
 export default function OrganizerEvents({
@@ -20,9 +25,10 @@ export default function OrganizerEvents({
   onNavigate: (tab: string) => void;
 }) {
   const { user } = useAuth();
-  const { getEventsByOrganizer, deleteEvent, registrations, loadMyEvents } = useEvents();
+  const { getEventsByOrganizer, registrations, loadMyEvents } = useEvents();
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   // Use guest user ID if not logged in
@@ -33,7 +39,7 @@ export default function OrganizerEvents({
     if (user) {
       loadMyEvents();
     }
-  }, [user]);
+  }, [user, loadMyEvents]);
 
   const myEvents = getEventsByOrganizer(userId);
 
@@ -44,11 +50,13 @@ export default function OrganizerEvents({
 
   const handleDelete = async (eventId: string) => {
     try {
-      await deleteEvent(eventId);
+      await deleteEventAPI(eventId);
+      await loadMyEvents(); // Reload events after deletion
       showToast("Event deleted successfully.");
       setDeleteConfirm(null);
       if (expandedEvent === eventId) setExpandedEvent(null);
     } catch (error) {
+      console.error("Failed to delete event:", error);
       showToast("Failed to delete event.");
     }
   };
@@ -172,6 +180,13 @@ export default function OrganizerEvents({
                           {isExpanded ? <ChevronUp className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                         <button
+                          onClick={() => setEditingEvent(event)}
+                          className="p-1.5 rounded-lg text-muted hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                          title="Edit event"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
                           onClick={() => setDeleteConfirm(event.id)}
                           className="p-1.5 rounded-lg text-muted hover:text-danger hover:bg-red-50 transition-colors"
                           title="Delete event"
@@ -246,6 +261,29 @@ export default function OrganizerEvents({
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editingEvent && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-background rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto relative">
+            <button
+              onClick={() => setEditingEvent(null)}
+              className="absolute top-4 right-4 p-2 rounded-lg text-muted hover:text-foreground hover:bg-secondary transition-colors z-10"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="p-6">
+              <CreateEventForm
+                event={editingEvent}
+                onSuccess={() => {
+                  setEditingEvent(null);
+                  showToast("Event updated successfully!");
+                }}
+              />
+            </div>
+          </div>
         </div>
       )}
 
