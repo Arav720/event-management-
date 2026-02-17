@@ -11,7 +11,7 @@ import {
 import { User, Role } from "./types";
 
 // Backend API URL - adjust this to your backend URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_URL = "https://eventflow-server-3.onrender.com";
 
 interface AuthContextType {
   user: User | null;

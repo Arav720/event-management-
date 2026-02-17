@@ -1,6 +1,6 @@
 // API utilities for making authenticated requests
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_URL = "https://eventflow-server-3.onrender.com";
 
 // Backend event type
 interface BackendEvent {
