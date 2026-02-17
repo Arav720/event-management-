@@ -1,13 +1,7 @@
 "use client";
 
 import { Event } from "@/lib/types";
-import {
-  Calendar,
-  MapPin,
-  Users,
-  Tag,
-  Clock,
-} from "lucide-react";
+import { Calendar, MapPin, Users, Tag, Clock } from "lucide-react";
 
 interface EventCardProps {
   event: Event;
@@ -20,12 +14,12 @@ interface EventCardProps {
 
 const categoryColors: Record<string, string> = {
   conference: "bg-blue-50 text-blue-600",
-  workshop: "bg-purple-50 text-purple-600",
-  meetup: "bg-green-50 text-green-600",
+  workshop: "bg-violet-50 text-violet-600",
+  meetup: "bg-emerald-50 text-emerald-600",
   seminar: "bg-amber-50 text-amber-600",
   webinar: "bg-cyan-50 text-cyan-600",
   social: "bg-pink-50 text-pink-600",
-  other: "bg-gray-50 text-gray-600",
+  other: "bg-gray-50 text-gray-500",
 };
 
 export default function EventCard({
@@ -40,28 +34,28 @@ export default function EventCard({
   const fillPercent = (event.registered / event.capacity) * 100;
 
   const actionStyles = {
-    primary: "bg-primary text-white hover:bg-primary-hover",
+    primary: "bg-primary text-white hover:bg-primary-hover shadow-sm shadow-primary/10",
     danger: "bg-red-50 text-danger hover:bg-red-100",
-    secondary: "bg-secondary text-foreground hover:bg-secondary-hover",
+    secondary: "bg-primary-light text-primary hover:bg-primary-light/80 border border-primary/10",
   };
 
   return (
     <div
       onClick={onClick}
-      className={`bg-card rounded-2xl border border-border p-5 hover:shadow-md transition-all duration-200 group ${
+      className={`bg-card rounded-2xl border border-border p-5 hover:shadow-md hover:border-border/80 transition-all duration-300 group ${
         onClick ? "cursor-pointer" : ""
       }`}
     >
-      {/* Top row: category badge + price */}
+      {/* Badge row */}
       <div className="flex items-center justify-between mb-3">
         <span
-          className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${
+          className={`text-[11px] font-semibold px-2.5 py-1 rounded-full capitalize ${
             categoryColors[event.category] || categoryColors.other
           }`}
         >
           {event.category}
         </span>
-        <span className="text-sm font-semibold text-foreground">
+        <span className="text-sm font-bold text-foreground">
           {event.price === 0 ? (
             <span className="text-success">Free</span>
           ) : (
@@ -71,14 +65,14 @@ export default function EventCard({
       </div>
 
       {/* Title */}
-      <h3 className="text-base font-semibold text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2">
+      <h3 className="text-[15px] font-semibold text-foreground mb-2.5 group-hover:text-primary transition-colors line-clamp-2 leading-snug">
         {event.title}
       </h3>
 
-      {/* Details */}
-      <div className="space-y-2 mb-4">
-        <div className="flex items-center gap-2 text-sm text-muted">
-          <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
+      {/* Meta */}
+      <div className="space-y-1.5 mb-4">
+        <div className="flex items-center gap-2 text-xs text-muted">
+          <Calendar className="w-3.5 h-3.5 shrink-0" />
           <span>
             {new Date(event.date).toLocaleDateString("en-US", {
               weekday: "short",
@@ -86,16 +80,17 @@ export default function EventCard({
               day: "numeric",
             })}
           </span>
-          <Clock className="w-3.5 h-3.5 flex-shrink-0 ml-2" />
+          <span className="text-border">·</span>
+          <Clock className="w-3.5 h-3.5 shrink-0" />
           <span>{event.time}</span>
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted">
-          <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+        <div className="flex items-center gap-2 text-xs text-muted">
+          <MapPin className="w-3.5 h-3.5 shrink-0" />
           <span className="truncate">{event.location}</span>
         </div>
         {showOrganizer && (
-          <div className="flex items-center gap-2 text-sm text-muted">
-            <Users className="w-3.5 h-3.5 flex-shrink-0" />
+          <div className="flex items-center gap-2 text-xs text-muted">
+            <Users className="w-3.5 h-3.5 shrink-0" />
             <span>by {event.organizerName}</span>
           </div>
         )}
@@ -104,11 +99,11 @@ export default function EventCard({
       {/* Tags */}
       {event.tags.length > 0 && (
         <div className="flex items-center gap-1.5 mb-4 flex-wrap">
-          <Tag className="w-3 h-3 text-muted" />
-          {event.tags.map((tag) => (
+          <Tag className="w-3 h-3 text-muted/40" />
+          {event.tags.slice(0, 3).map((tag) => (
             <span
               key={tag}
-              className="text-xs px-2 py-0.5 rounded-full bg-secondary text-muted"
+              className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-muted font-medium"
             >
               {tag}
             </span>
@@ -116,27 +111,27 @@ export default function EventCard({
         </div>
       )}
 
-      {/* Capacity bar */}
+      {/* Capacity */}
       <div className="mb-4">
         <div className="flex items-center justify-between text-xs mb-1.5">
           <span className="text-muted">
-            {event.registered} / {event.capacity} registered
+            {event.registered} / {event.capacity}
           </span>
           <span
             className={`font-medium ${
-              spotsLeft <= 10 ? "text-warning" : "text-success"
+              spotsLeft <= 5 ? "text-danger" : spotsLeft <= 20 ? "text-warning" : "text-success"
             }`}
           >
-            {spotsLeft} spots left
+            {spotsLeft} left
           </span>
         </div>
         <div className="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all duration-500 ${
+            className={`h-full rounded-full transition-all duration-700 ease-out ${
               fillPercent > 90
-                ? "bg-warning"
+                ? "bg-danger"
                 : fillPercent > 70
-                ? "bg-amber-300"
+                ? "bg-warning"
                 : "bg-primary"
             }`}
             style={{ width: `${Math.min(fillPercent, 100)}%` }}
@@ -151,7 +146,7 @@ export default function EventCard({
             e.stopPropagation();
             onAction();
           }}
-          className={`w-full py-2 rounded-xl text-sm font-medium transition-all active:scale-[0.98] ${actionStyles[actionVariant]}`}
+          className={`w-full py-2.5 rounded-xl text-sm font-medium transition-all active:scale-[0.97] ${actionStyles[actionVariant]}`}
         >
           {actionLabel}
         </button>

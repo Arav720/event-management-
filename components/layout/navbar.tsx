@@ -7,9 +7,10 @@ import {
   Calendar,
   PlusCircle,
   LayoutDashboard,
-  Users,
+  Ticket,
   Menu,
   X,
+  Search,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -30,23 +31,26 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
     ? [
         { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
         { id: "events", label: "My Events", icon: Calendar },
-        { id: "create", label: "Create Event", icon: PlusCircle },
+        { id: "create", label: "Create", icon: PlusCircle },
       ]
     : [
-        { id: "browse", label: "Browse Events", icon: Calendar },
-        { id: "registered", label: "My Events", icon: Users },
+        { id: "browse", label: "Browse", icon: Search },
+        { id: "registered", label: "My Tickets", icon: Ticket },
       ];
 
   return (
-    <nav className="bg-card border-b border-border sticky top-0 z-50">
+    <nav className="bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-sm shadow-primary/20">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-lg text-foreground">Eventify</span>
+            <span className="font-bold text-lg text-foreground tracking-tight">Eventify</span>
+            <span className="hidden sm:inline-block text-xs px-2 py-0.5 rounded-full bg-primary-light text-primary font-medium capitalize">
+              {user.role}
+            </span>
           </div>
 
           {/* Desktop Nav */}
@@ -55,9 +59,9 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                   activeTab === tab.id
-                    ? "bg-primary-light text-primary"
+                    ? "bg-primary text-white shadow-sm shadow-primary/20"
                     : "text-muted hover:text-foreground hover:bg-secondary"
                 }`}
               >
@@ -67,25 +71,25 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
             ))}
           </div>
 
-          {/* User info + Logout */}
-          <div className="hidden md:flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-sm font-medium text-foreground">{user.name}</p>
-              <p className="text-xs text-muted capitalize">{user.role}</p>
+          {/* User */}
+          <div className="hidden md:flex items-center gap-3">
+            <div className="text-right mr-1">
+              <p className="text-sm font-medium text-foreground leading-tight">{user.name}</p>
+              <p className="text-[11px] text-muted capitalize">{user.role}</p>
             </div>
-            <div className="w-9 h-9 rounded-full bg-primary-light text-primary flex items-center justify-center text-sm font-bold">
+            <div className="w-9 h-9 rounded-full bg-linear-to-br from-primary to-primary-hover text-white flex items-center justify-center text-sm font-bold shadow-sm">
               {user.name.charAt(0)}
             </div>
             <button
               onClick={logout}
               className="p-2 rounded-lg text-muted hover:text-danger hover:bg-red-50 transition-colors"
-              title="Logout"
+              title="Sign out"
             >
               <LogOut className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Mobile menu */}
+          {/* Mobile toggle */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="md:hidden p-2 rounded-lg hover:bg-secondary"
@@ -97,7 +101,7 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
 
       {/* Mobile dropdown */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-border bg-card px-4 py-3 space-y-1">
+        <div className="md:hidden border-t border-border bg-card px-4 py-3 space-y-1 animate-slide-up">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -105,9 +109,9 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
                 onTabChange(tab.id);
                 setMobileOpen(false);
               }}
-              className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 activeTab === tab.id
-                  ? "bg-primary-light text-primary"
+                  ? "bg-primary text-white"
                   : "text-muted hover:text-foreground hover:bg-secondary"
               }`}
             >
@@ -117,7 +121,7 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
           ))}
           <div className="border-t border-border pt-3 mt-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary-light text-primary flex items-center justify-center text-sm font-bold">
+              <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-primary-hover text-white flex items-center justify-center text-sm font-bold">
                 {user.name.charAt(0)}
               </div>
               <div>
