@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/event-management-backend/node_modules
 /.pnp
 .pnp.*
 .yarn/*
