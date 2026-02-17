@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useEvents } from "@/lib/event-context";
 import {
@@ -20,13 +20,20 @@ export default function OrganizerEvents({
   onNavigate: (tab: string) => void;
 }) {
   const { user } = useAuth();
-  const { getEventsByOrganizer, deleteEvent, registrations } = useEvents();
+  const { getEventsByOrganizer, deleteEvent, registrations, loadMyEvents } = useEvents();
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   // Use guest user ID if not logged in
   const userId = user?.id || "guest";
+
+  // Load organizer's events on mount
+  useEffect(() => {
+    if (user) {
+      loadMyEvents();
+    }
+  }, [user]);
 
   const myEvents = getEventsByOrganizer(userId);
 
@@ -35,11 +42,15 @@ export default function OrganizerEvents({
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleDelete = (eventId: string) => {
-    deleteEvent(eventId);
-    showToast("Event deleted successfully.");
-    setDeleteConfirm(null);
-    if (expandedEvent === eventId) setExpandedEvent(null);
+  const handleDelete = async (eventId: string) => {
+    try {
+      await deleteEvent(eventId);
+      showToast("Event deleted successfully.");
+      setDeleteConfirm(null);
+      if (expandedEvent === eventId) setExpandedEvent(null);
+    } catch (error) {
+      showToast("Failed to delete event.");
+    }
   };
 
   const getEventRegistrations = (eventId: string) => {

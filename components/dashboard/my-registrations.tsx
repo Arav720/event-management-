@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useEvents } from "@/lib/event-context";
 import { Event } from "@/lib/types";
@@ -20,6 +21,7 @@ export default function MyRegistrations() {
     getUserRegistrations,
     getEventById,
     cancelRegistration,
+    loadMyRegistrations,
   } = useEvents();
 
   const [toast, setToast] = useState<string | null>(null);
@@ -27,6 +29,13 @@ export default function MyRegistrations() {
 
   // Use guest user ID if not logged in
   const userId = user?.id || "guest";
+
+  // Load registered events on mount
+  useEffect(() => {
+    if (user) {
+      loadMyRegistrations();
+    }
+  }, [user]);
 
   const regs = getUserRegistrations(userId);
   const registeredEvents = regs

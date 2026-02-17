@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useEvents } from "@/lib/event-context";
 import { Event, EventCategory } from "@/lib/types";
@@ -20,13 +20,18 @@ const allCategories: { value: EventCategory | "all"; label: string }[] = [
 
 export default function BrowseEvents() {
   const { user } = useAuth();
-  const { events, registerForEvent, cancelRegistration, isUserRegistered } =
+  const { events, registerForEvent, cancelRegistration, isUserRegistered, loadEvents, isLoading } =
     useEvents();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | "all">("all");
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+
+  // Load events from backend on mount
+  useEffect(() => {
+    loadEvents();
+  }, []);
 
   const filteredEvents = events.filter((event) => {
     const q = searchQuery.toLowerCase();
@@ -45,10 +50,10 @@ export default function BrowseEvents() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleRegister = (eventId: string) => {
+  const handleRegister = async (eventId: string) => {
     // Use guest user ID if not logged in
     const userId = user?.id || "guest";
-    const success = registerForEvent(eventId, userId);
+    const success = await registerForEvent(eventId, userId);
     if (success) showToast("Registered successfully! 🎉");
     else showToast("Registration failed. Event may be full.");
   };

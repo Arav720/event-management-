@@ -44,9 +44,11 @@ export default function CreateEventForm({
   const [capacity, setCapacity] = useState("");
   const [price, setPrice] = useState("");
   const [tagsInput, setTagsInput] = useState("");
+  const [image, setImage] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showSuccess, setShowSuccess] = useState(false);
   const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -63,48 +65,59 @@ export default function CreateEventForm({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate() || isSubmitting) return;
 
-    const userId = user?.id || "guest";
-    const userName = user?.name || "Guest User";
+    setIsSubmitting(true);
 
-    const tags = tagsInput
-      .split(",")
-      .map((t) => t.trim())
-      .filter(Boolean);
+    try {
+      const userId = user?.id || "guest";
+      const userName = user?.name || "Guest User";
 
-    addEvent({
-      title: title.trim(),
-      description: description.trim(),
-      date,
-      time,
-      location: location.trim(),
-      category,
-      capacity: Number(capacity),
-      price: Number(price) || 0,
-      tags,
-      organizerId: userId,
-      organizerName: userName,
-    });
+      const tags = tagsInput
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
 
-    setTitle("");
-    setDescription("");
-    setDate("");
-    setTime("");
-    setLocation("");
-    setCategory("conference");
-    setCapacity("");
-    setPrice("");
-    setTagsInput("");
-    setErrors({});
-    setStep(1);
-    setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
-      onSuccess?.();
-    }, 2000);
+      await addEvent({
+        title: title.trim(),
+        description: description.trim(),
+        date,
+        time,
+        location: location.trim(),
+        category,
+        capacity: Number(capacity),
+        price: Number(price) || 0,
+        tags,
+        organizerId: userId,
+        organizerName: userName,
+        image: image ? URL.createObjectURL(image) : undefined,
+      });
+
+      setTitle("");
+      setDescription("");
+      setDate("");
+      setTime("");
+      setLocation("");
+      setCategory("conference");
+      setCapacity("");
+      setPrice("");
+      setTagsInput("");
+      setImage(null);
+      setErrors({});
+      setStep(1);
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        onSuccess?.();
+      }, 2000);
+    } catch (error) {
+      console.error("Failed to create event:", error);
+      setErrors({ submit: "Failed to create event. Please try again." });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (showSuccess) {

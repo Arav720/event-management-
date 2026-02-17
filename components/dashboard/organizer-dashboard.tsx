@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useEvents } from "@/lib/event-context";
 import {
@@ -19,11 +20,18 @@ export default function OrganizerDashboard({
   onNavigate: (tab: string) => void;
 }) {
   const { user } = useAuth();
-  const { getEventsByOrganizer, registrations } = useEvents();
+  const { getEventsByOrganizer, registrations, loadMyEvents } = useEvents();
 
   // Use guest user ID if not logged in
   const userId = user?.id || "guest";
   const userName = user?.name || "Guest User";
+
+  // Load organizer's events on mount
+  useEffect(() => {
+    if (user) {
+      loadMyEvents();
+    }
+  }, [user]);
 
   const myEvents = getEventsByOrganizer(userId);
   const totalRegistrations = myEvents.reduce((sum, e) => sum + e.registered, 0);
