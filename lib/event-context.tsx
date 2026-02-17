@@ -103,11 +103,15 @@ export function EventProvider({ children }: { children: ReactNode }) {
   const loadMyEvents = useCallback(async () => {
     try {
       setIsLoading(true);
+      console.log('Loading my events...');
       const backendEvents = await api.getMyEvents();
+      console.log('Received events from backend:', backendEvents);
       const convertedEvents = backendEvents.map(convertBackendEvent);
+      console.log('Converted events:', convertedEvents);
       setEvents(convertedEvents);
     } catch (error) {
       console.error("Failed to load my events:", error);
+      // Don't throw, just log the error
     } finally {
       setIsLoading(false);
     }

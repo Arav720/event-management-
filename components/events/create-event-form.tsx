@@ -110,14 +110,26 @@ export default function CreateEventForm({
         formData.append('image', image);
       }
 
+      console.log('Submitting event form...', {
+        isEditMode,
+        hasImage: !!image,
+        title: title.trim(),
+      });
+
       // Call appropriate API endpoint
+      let result;
       if (isEditMode) {
-        await updateEvent(formData);
+        console.log('Calling updateEvent API...');
+        result = await updateEvent(formData);
       } else {
-        await createEvent(formData);
+        console.log('Calling createEvent API...');
+        result = await createEvent(formData);
       }
 
+      console.log('Event API response:', result);
+
       // Reload events after successful creation/update
+      console.log('Loading my events...');
       await loadMyEvents();
 
       // Reset form only if creating (not editing)
@@ -141,9 +153,10 @@ export default function CreateEventForm({
         setShowSuccess(false);
         onSuccess?.();
       }, 2000);
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to ${isEditMode ? 'update' : 'create'} event:`, error);
-      setErrors({ submit: `Failed to ${isEditMode ? 'update' : 'create'} event. Please try again.` });
+      const errorMessage = error?.message || `Failed to ${isEditMode ? 'update' : 'create'} event. Please try again.`;
+      setErrors({ submit: errorMessage });
     } finally {
       setIsSubmitting(false);
     }

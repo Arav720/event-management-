@@ -26,6 +26,13 @@ export async function fetchWithAuth(
 ): Promise<Response> {
   const token = localStorage.getItem("token");
   
+  console.log('fetchWithAuth:', {
+    endpoint,
+    method: options.method || 'GET',
+    hasToken: !!token,
+    isFormData: options.body instanceof FormData
+  });
+  
   const headers: Record<string, string> = {
     ...options.headers as Record<string, string>,
   };
@@ -37,9 +44,14 @@ export async function fetchWithAuth(
 
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
+  } else {
+    console.warn('No token found in localStorage for authenticated request');
   }
 
-  return fetch(`${API_URL}${endpoint}`, {
+  const url = `${API_URL}${endpoint}`;
+  console.log('Making request to:', url);
+
+  return fetch(url, {
     ...options,
     headers,
   });
@@ -49,10 +61,18 @@ export async function fetchWithAuth(
  * Helper to handle API responses
  */
 export async function handleApiResponse<T>(response: Response): Promise<T> {
+  console.log('API Response:', {
+    status: response.status,
+    statusText: response.statusText,
+    ok: response.ok
+  });
+  
   const data = await response.json();
   
+  console.log('API Response data:', data);
+  
   if (!response.ok) {
-    throw new Error(data.message || "API request failed");
+    throw new Error(data.message || `API request failed with status ${response.status}`);
   }
   
   return data;

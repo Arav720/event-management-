@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
+import { useRouter } from "next/navigation";
 import {
   Sparkles,
   LogOut,
@@ -22,7 +23,13 @@ interface NavbarProps {
 
 export default function Navbar({ activeTab, onTabChange, userType = "attendee" }: NavbarProps) {
   const { user, logout } = useAuth();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    router.push("/");
+  };
 
   const isOrganizer = user?.role === "organizer" || userType === "organizer";
 
@@ -84,7 +91,7 @@ export default function Navbar({ activeTab, onTabChange, userType = "attendee" }
                   {user.name.charAt(0)}
                 </div>
                 <button
-                  onClick={logout}
+                  onClick={handleLogout}
                   className="p-2 rounded-lg text-muted hover:text-danger hover:bg-red-50 transition-colors"
                   title="Sign out"
                 >
@@ -142,8 +149,9 @@ export default function Navbar({ activeTab, onTabChange, userType = "attendee" }
                   </div>
                 </div>
                 <button
-                  onClick={logout}
+                  onClick={handleLogout}
                   className="p-2 rounded-lg text-muted hover:text-danger hover:bg-red-50 transition-colors"
+                  title="Sign out"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
