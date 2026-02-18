@@ -12,6 +12,7 @@ import {
   XCircle,
   CheckCircle2,
   Users,
+  RefreshCw,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -22,22 +23,45 @@ export default function MyRegistrations() {
     getEventById,
     cancelRegistration,
     loadMyRegistrations,
+    isLoading,
   } = useEvents();
 
   const [toast, setToast] = useState<string | null>(null);
   const [cancelConfirm, setCancelConfirm] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Use guest user ID if not logged in
   const userId = user?.id || "guest";
 
-  // Load registered events on mount
+  // Load registered events on mount and when user changes
   useEffect(() => {
-    console.log('MyRegistrations: User:', user);
-    if (user) {
+    console.log('MyRegistrations: Component mounted or user changed:', user);
+    if (user && !loaded) {
       console.log('MyRegistrations: Loading my registrations for user ID:', user.id);
-      loadMyRegistrations();
+      loadMyRegistrations().then(() => {
+        console.log('MyRegistrations: Loaded successfully');
+        setLoaded(true);
+      }).catch(err => {
+        console.error('MyRegistrations: Failed to load:', err);
+      });
     }
-  }, [user, loadMyRegistrations]);
+  }, [user, loaded, loadMyRegistrations]);
+
+  const handleRefresh = async () => {
+    if (!user) return;
+    setIsRefreshing(true);
+    console.log('MyRegistrations: Manual refresh triggered');
+    try {
+      await loadMyRegistrations();
+      showToast("Tickets refreshed!");
+    } catch (err) {
+      console.error('MyRegistrations: Refresh failed:', err);
+      showToast("Failed to refresh tickets");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const regs = getUserRegistrations(userId);
   console.log('MyRegistrations: Retrieved registrations:', regs);
@@ -67,21 +91,39 @@ export default function MyRegistrations() {
     <div className="animate-fade-in">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center">
-            <Ticket className="w-5 h-5 text-primary" />
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center">
+              <Ticket className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">My Tickets</h1>
+              <p className="text-sm text-muted">
+                {registeredEvents.length} event{registeredEvents.length !== 1 ? "s" : ""} registered
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">My Tickets</h1>
-            <p className="text-sm text-muted">
-              {registeredEvents.length} event{registeredEvents.length !== 1 ? "s" : ""} registered
-            </p>
-          </div>
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing || !user}
+            className={`p-2.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary transition-all ${
+              isRefreshing ? 'animate-spin' : ''
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+            title="Refresh tickets"
+          >
+            <RefreshCw className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
-      {/* Empty state */}
-      {registeredEvents.length === 0 ? (
+      {/* Loading state */}
+      {isLoading && registeredEvents.length === 0 ? (
+        <div className="text-center py-20 bg-card rounded-2xl border border-border">
+          <RefreshCw className="w-14 h-14 text-primary/40 mx-auto mb-4 animate-spin" />
+          <h3 className="text-lg font-semibold text-foreground mb-1">Loading your tickets...</h3>
+          <p className="text-sm text-muted">Please wait while we fetch your registered events.</p>
+        </div>
+      ) : registeredEvents.length === 0 ? (
         <div className="text-center py-20 bg-card rounded-2xl border border-border">
           <Ticket className="w-14 h-14 text-muted/20 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-foreground mb-1">No tickets yet</h3>
@@ -101,7 +143,23 @@ export default function MyRegistrations() {
               
               {/* Ticket content */}
               <div className="p-6">
-                {/* Header with QR code placeholder */}
+                {/* Event Image Banner */}
+                {event.image && event.image.trim() !== '' && (
+                  <div className="-mx-6 -mt-6 mb-4 h-32 overflow-hidden relative">
+                    <img 
+                      src={event.image} 
+                      alt={event.title}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Hide image if it fails to load
+                        e.currentTarget.parentElement?.remove();
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-card via-card/50 to-transparent" />
+                  </div>
+                )}
+                
+                {/* Header with Event Thumbnail */}
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -118,9 +176,26 @@ export default function MyRegistrations() {
                     </span>
                   </div>
                   
-                  {/* QR Code placeholder */}
-                  <div className="w-20 h-20 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg flex items-center justify-center border-2 border-dashed border-primary/30 shrink-0">
-                    <Ticket className="w-8 h-8 text-primary/40" />
+                  {/* Event Thumbnail or Ticket Icon */}
+                  <div className="w-20 h-20 rounded-lg overflow-hidden border-2 border-primary/20 shrink-0 bg-gradient-to-br from-primary/5 to-primary/10">
+                    {event.image && event.image.trim() !== '' ? (
+                      <img 
+                        src={event.image} 
+                        alt={event.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Show fallback icon if image fails to load
+                          const parent = e.currentTarget.parentElement;
+                          if (parent) {
+                            parent.innerHTML = '<div class="w-full h-full flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary-40 opacity-40"><path d="M2 9a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V9z"/><path d="M8 8v1"/><path d="M16 8v1"/><path d="M2 13h20"/><path d="M2 17h20"/></svg></div>';
+                          }
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Ticket className="w-8 h-8 text-primary/40" />
+                      </div>
+                    )}
                   </div>
                 </div>
 
