@@ -111,18 +111,27 @@ export function EventProvider({ children }: { children: ReactNode }) {
   const loadMyRegistrations = useCallback(async () => {
     try {
       setIsLoading(true);
+      console.log('Loading registered events...');
       const backendEvents = await api.getMyRegisteredEvents();
+      console.log('Received registered events from backend:', backendEvents);
       const convertedEvents = backendEvents.map(convertBackendEvent);
+      console.log('Converted registered events:', convertedEvents);
+      
+      // Get user ID from stored user data
+      const storedUser = localStorage.getItem("user");
+      const userId = storedUser ? JSON.parse(storedUser).id : "guest";
+      console.log('User ID for registrations:', userId);
       
       // Create registration records for each registered event
       const newRegistrations: Registration[] = convertedEvents.map(event => ({
         id: event.id,
         eventId: event.id,
-        userId: localStorage.getItem("userId") || "guest",
+        userId: userId,
         registeredAt: new Date().toISOString(),
         status: "confirmed" as const,
       }));
       
+      console.log('Created registrations:', newRegistrations);
       setRegistrations(newRegistrations);
       // Also keep the events in the events array for display
       setEvents(prev => {

@@ -32,18 +32,24 @@ export default function MyRegistrations() {
 
   // Load registered events on mount
   useEffect(() => {
+    console.log('MyRegistrations: User:', user);
     if (user) {
+      console.log('MyRegistrations: Loading my registrations for user ID:', user.id);
       loadMyRegistrations();
     }
   }, [user, loadMyRegistrations]);
 
   const regs = getUserRegistrations(userId);
+  console.log('MyRegistrations: Retrieved registrations:', regs);
   const registeredEvents = regs
     .map((r) => {
       const event = getEventById(r.eventId);
+      console.log(`MyRegistrations: Registration ${r.id} -> Event`, event);
       return event ? { event, registration: r } : null;
     })
     .filter(Boolean) as { event: Event; registration: typeof regs[0] }[];
+
+  console.log('MyRegistrations: Final registered events to display:', registeredEvents);
 
   const showToast = (message: string) => {
     setToast(message);
@@ -82,90 +88,130 @@ export default function MyRegistrations() {
           <p className="text-sm text-muted">Browse events and register to see your tickets here.</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {registeredEvents.map(({ event, registration }, i) => (
             <div
               key={event.id}
-              className="bg-card rounded-2xl border border-border overflow-hidden hover:shadow-sm transition-all animate-slide-up"
+              className="relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl border-2 border-primary/20 overflow-hidden hover:shadow-lg hover:border-primary/40 transition-all animate-slide-up group"
               style={{ animationDelay: `${i * 60}ms` }}
             >
-              <div className="p-5">
-                <div className="flex items-start justify-between gap-4">
-                  {/* Event info */}
-                  <div className="flex-1 min-w-0">
+              {/* Ticket punch holes effect */}
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-background rounded-full -ml-2" />
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-background rounded-full -mr-2" />
+              
+              {/* Ticket content */}
+              <div className="p-6">
+                {/* Header with QR code placeholder */}
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
-                      <span className="text-xs font-medium text-success">Confirmed</span>
-                      <span className="text-xs text-muted">·</span>
-                      <span className="text-xs text-muted capitalize px-2 py-0.5 rounded-full bg-secondary">
-                        {event.category}
-                      </span>
+                      <div className="w-6 h-6 rounded-full bg-success/10 flex items-center justify-center">
+                        <CheckCircle2 className="w-4 h-4 text-success" />
+                      </div>
+                      <span className="text-xs font-semibold text-success uppercase tracking-wide">Confirmed</span>
                     </div>
-                    <h3 className="text-base font-semibold text-foreground mb-2">{event.title}</h3>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted">
-                      <span className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5" />
+                    <h3 className="text-lg font-bold text-foreground mb-1 group-hover:text-primary transition-colors">
+                      {event.title}
+                    </h3>
+                    <span className="inline-block text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary capitalize">
+                      {event.category}
+                    </span>
+                  </div>
+                  
+                  {/* QR Code placeholder */}
+                  <div className="w-20 h-20 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg flex items-center justify-center border-2 border-dashed border-primary/30 shrink-0">
+                    <Ticket className="w-8 h-8 text-primary/40" />
+                  </div>
+                </div>
+
+                {/* Event details */}
+                <div className="space-y-3 mb-4 pb-4 border-b border-dashed border-border">
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <Calendar className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[10px] text-muted uppercase tracking-wide">Date</p>
+                      <p className="font-semibold text-foreground">
                         {new Date(event.date).toLocaleDateString("en-US", {
-                          weekday: "short", month: "short", day: "numeric",
+                          weekday: "long", month: "long", day: "numeric", year: "numeric",
                         })}
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5" />
-                        {event.time}
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5" />
-                        <span className="truncate max-w-50">{event.location}</span>
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <Users className="w-3.5 h-3.5" />
-                        {event.registered}/{event.capacity} attending
-                      </span>
+                      </p>
                     </div>
-                    <p className="text-[11px] text-muted/60 mt-2">
-                      Registered on {new Date(registration.registeredAt).toLocaleDateString("en-US", {
-                        month: "long", day: "numeric", year: "numeric",
-                      })}
+                  </div>
+                  
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <Clock className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[10px] text-muted uppercase tracking-wide">Time</p>
+                      <p className="font-semibold text-foreground">{event.time}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <MapPin className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[10px] text-muted uppercase tracking-wide">Location</p>
+                      <p className="font-semibold text-foreground truncate">{event.location}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] text-muted mb-0.5">Registration ID</p>
+                    <p className="text-xs font-mono font-semibold text-foreground">
+                      {registration.id.slice(0, 12).toUpperCase()}
                     </p>
                   </div>
-
-                  {/* Price + cancel */}
-                  <div className="flex flex-col items-end gap-2 shrink-0">
-                    <span className="text-sm font-bold text-foreground">
-                      {event.price === 0 ? (
-                        <span className="text-success">Free</span>
-                      ) : (
-                        `$${event.price}`
-                      )}
-                    </span>
-
+                  
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="text-[10px] text-muted mb-0.5">Price</p>
+                      <p className="text-sm font-bold text-foreground">
+                        {event.price === 0 ? (
+                          <span className="text-success">Free</span>
+                        ) : (
+                          `$${event.price}`
+                        )}
+                      </p>
+                    </div>
+                    
                     {cancelConfirm === event.id ? (
                       <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => setCancelConfirm(null)}
-                          className="px-2.5 py-1 rounded-lg text-xs text-muted hover:bg-secondary"
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium text-muted hover:bg-secondary transition-colors"
                         >
                           Keep
                         </button>
                         <button
                           onClick={() => handleCancel(event.id)}
-                          className="px-2.5 py-1 rounded-lg text-xs bg-danger text-white hover:bg-red-600"
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-danger text-white hover:bg-red-600 transition-colors"
                         >
-                          Cancel
+                          Confirm
                         </button>
                       </div>
                     ) : (
                       <button
                         onClick={() => setCancelConfirm(event.id)}
-                        className="flex items-center gap-1 text-xs text-muted hover:text-danger transition-colors"
+                        className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 text-muted hover:text-danger transition-colors group/btn"
+                        title="Cancel registration"
                       >
-                        <XCircle className="w-3.5 h-3.5" />
-                        Cancel
+                        <XCircle className="w-5 h-5" />
                       </button>
                     )}
                   </div>
                 </div>
               </div>
+
+              {/* Decorative elements */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/20 via-primary to-primary/20" />
             </div>
           ))}
         </div>

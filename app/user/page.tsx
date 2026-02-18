@@ -1,13 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/layout/navbar";
 import BrowseEvents from "@/components/dashboard/browse-events";
 import MyRegistrations from "@/components/dashboard/my-registrations";
 
 export default function UserPage() {
-  const [activeTab, setActiveTab] = useState("browse");
+  const searchParams = useSearchParams();
   const [mounted, setMounted] = useState(false);
+  
+  // Get initial tab from URL params
+  const getInitialTab = () => {
+    const tab = searchParams.get('tab');
+    return (tab === 'tickets' || tab === 'registered') ? 'registered' : 'browse';
+  };
+  
+  const [activeTab, setActiveTab] = useState(getInitialTab());
 
   // Prevent hydration mismatch
   useEffect(() => {
