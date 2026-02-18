@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/layout/navbar";
 import BrowseEvents from "@/components/dashboard/browse-events";
 import MyRegistrations from "@/components/dashboard/my-registrations";
 
-export default function UserPage() {
+function UserPageContent() {
   const searchParams = useSearchParams();
   const [mounted, setMounted] = useState(false);
   
@@ -47,5 +47,20 @@ export default function UserPage() {
         {renderContent()}
       </main>
     </div>
+  );
+}
+
+export default function UserPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted">Loading...</p>
+        </div>
+      </div>
+    }>
+      <UserPageContent />
+    </Suspense>
   );
 }
