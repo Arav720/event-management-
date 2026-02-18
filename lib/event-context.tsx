@@ -75,15 +75,6 @@ export function EventProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [useBackend, setUseBackend] = useState(false);
 
-  // Check if we should use backend on mount
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      setUseBackend(true);
-      loadEvents();
-    }
-  }, []);
-
   const loadEvents = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -122,7 +113,24 @@ export function EventProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       const backendEvents = await api.getMyRegisteredEvents();
       const convertedEvents = backendEvents.map(convertBackendEvent);
-      setEvents(convertedEvents);
+      
+      // Create registration records for each registered event
+      const newRegistrations: Registration[] = convertedEvents.map(event => ({
+        id: event.id,
+        eventId: event.id,
+        userId: localStorage.getItem("userId") || "guest",
+        registeredAt: new Date().toISOString(),
+        status: "confirmed" as const,
+      }));
+      
+      setRegistrations(newRegistrations);
+      // Also keep the events in the events array for display
+      setEvents(prev => {
+        // Merge registered events with existing events, avoiding duplicates
+        const eventMap = new Map(prev.map(e => [e.id, e]));
+        convertedEvents.forEach(e => eventMap.set(e.id, e));
+        return Array.from(eventMap.values());
+      });
     } catch (error) {
       console.error("Failed to load registered events:", error);
     } finally {
@@ -191,8 +199,8 @@ export function EventProvider({ children }: { children: ReactNode }) {
       if (useBackend) {
         try {
           await api.registerForEvent(eventId);
-          // Reload events to get updated registration count
-          await loadEvents();
+          // Reload both all events and registered events to sync state
+          await Promise.all([loadEvents(), loadMyRegistrations()]);
           return true;
         } catch (error) {
           console.error("Failed to register for event:", error);
@@ -223,7 +231,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
         return true;
       }
     },
-    [events, registrations, useBackend, loadEvents]
+    [events, registrations, useBackend, loadEvents, loadMyRegistrations]
   );
 
   const cancelRegistration = useCallback(
@@ -275,6 +283,15 @@ export function EventProvider({ children }: { children: ReactNode }) {
       ),
     [registrations]
   );
+
+  // Check if we should use backend on mount
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      setUseBackend(true);
+      loadEvents();
+    }
+  }, [loadEvents]);
 
   return (
     <EventContext.Provider

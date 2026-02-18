@@ -6,7 +6,7 @@ import { useEvents } from "@/lib/event-context";
 import { Event, EventCategory } from "@/lib/types";
 import EventCard from "../events/event-card";
 import EventDetailModal from "../events/event-detail-modal";
-import { Search, SlidersHorizontal, Calendar, Sparkles } from "lucide-react";
+import { Search, SlidersHorizontal, Calendar, Sparkles, CheckCircle2 } from "lucide-react";
 
 const allCategories: { value: EventCategory | "all"; label: string }[] = [
   { value: "all", label: "All Events" },
@@ -27,6 +27,7 @@ export default function BrowseEvents() {
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | "all">("all");
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Load events from backend on mount
   useEffect(() => {
@@ -54,7 +55,11 @@ export default function BrowseEvents() {
     // Use guest user ID if not logged in
     const userId = user?.id || "guest";
     const success = await registerForEvent(eventId, userId);
-    if (success) showToast("Registered successfully! 🎉");
+    if (success) {
+      setShowSuccessModal(true);
+      setTimeout(() => setShowSuccessModal(false), 3000);
+      showToast("Registered successfully! 🎉");
+    }
     else showToast("Registration failed. Event may be full.");
   };
 
@@ -160,6 +165,39 @@ export default function BrowseEvents() {
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 bg-foreground text-background px-5 py-3 rounded-xl shadow-lg text-sm font-medium animate-toast">
           {toast}
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" />
+          <div className="relative bg-card rounded-2xl border border-border shadow-xl p-8 max-w-md w-full text-center animate-scale-in">
+            <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="w-8 h-8 text-success" />
+            </div>
+            <h3 className="text-xl font-bold text-foreground mb-2">Registration Successful!</h3>
+            <p className="text-sm text-muted mb-4">
+              You&apos;re all set! Check your tickets section to view your registration.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowSuccessModal(false)}
+                className="flex-1 py-2.5 rounded-xl bg-secondary text-foreground text-sm font-medium hover:bg-secondary/80 transition-all"
+              >
+                Continue Browsing
+              </button>
+              <button
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  window.location.href = '/user?tab=tickets';
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary-hover transition-all"
+              >
+                View Tickets
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

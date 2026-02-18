@@ -35,7 +35,7 @@ export default function MyRegistrations() {
     if (user) {
       loadMyRegistrations();
     }
-  }, [user]);
+  }, [user, loadMyRegistrations]);
 
   const regs = getUserRegistrations(userId);
   const registeredEvents = regs
