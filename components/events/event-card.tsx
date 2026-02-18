@@ -1,7 +1,7 @@
 "use client";
 
 import { Event } from "@/lib/types";
-import { Calendar, MapPin, Users, Tag, Clock } from "lucide-react";
+import { Calendar, MapPin, Users, Tag, Clock, Image as ImageIcon } from "lucide-react";
 
 interface EventCardProps {
   event: Event;
@@ -42,27 +42,74 @@ export default function EventCard({
   return (
     <div
       onClick={onClick}
-      className={`bg-card rounded-2xl border border-border p-5 hover:shadow-md hover:border-border/80 transition-all duration-300 group ${
+      className={`bg-card rounded-2xl border border-border overflow-hidden hover:shadow-md hover:border-border/80 transition-all duration-300 group ${
         onClick ? "cursor-pointer" : ""
       }`}
     >
-      {/* Badge row */}
-      <div className="flex items-center justify-between mb-3">
-        <span
-          className={`text-[11px] font-semibold px-2.5 py-1 rounded-full capitalize ${
-            categoryColors[event.category] || categoryColors.other
-          }`}
-        >
-          {event.category}
-        </span>
-        <span className="text-sm font-bold text-foreground">
-          {event.price === 0 ? (
-            <span className="text-success">Free</span>
-          ) : (
-            `$${event.price}`
-          )}
-        </span>
-      </div>
+      {/* Event Image */}
+      {event.image && event.image.trim() !== '' ? (
+        <div className="relative h-40 overflow-hidden bg-gradient-to-br from-primary/5 to-primary/10">
+          <img 
+            src={event.image} 
+            alt={event.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              // Show fallback if image fails to load
+              const parent = e.currentTarget.parentElement;
+              if (parent) {
+                parent.innerHTML = `
+                  <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary/30">
+                      <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                      <circle cx="9" cy="9" r="2"/>
+                      <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                    </svg>
+                  </div>
+                `;
+              }
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+          
+          {/* Price badge on image */}
+          <div className="absolute top-3 right-3 px-3 py-1.5 rounded-full backdrop-blur-md bg-white/90 dark:bg-gray-900/90 border border-white/20">
+            <span className="text-sm font-bold text-foreground">
+              {event.price === 0 ? (
+                <span className="text-success">Free</span>
+              ) : (
+                `$${event.price}`
+              )}
+            </span>
+          </div>
+        </div>
+      ) : (
+        <div className="relative h-40 bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
+          <ImageIcon className="w-12 h-12 text-primary/20" />
+          {/* Price badge on placeholder */}
+          <div className="absolute top-3 right-3 px-3 py-1.5 rounded-full bg-white dark:bg-gray-900 border border-border">
+            <span className="text-sm font-bold text-foreground">
+              {event.price === 0 ? (
+                <span className="text-success">Free</span>
+              ) : (
+                `$${event.price}`
+              )}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Card Content */}
+      <div className="p-5">
+        {/* Badge row */}
+        <div className="flex items-center justify-between mb-3">
+          <span
+            className={`text-[11px] font-semibold px-2.5 py-1 rounded-full capitalize ${
+              categoryColors[event.category] || categoryColors.other
+            }`}
+          >
+            {event.category}
+          </span>
+        </div>
 
       {/* Title */}
       <h3 className="text-[15px] font-semibold text-foreground mb-2.5 group-hover:text-primary transition-colors line-clamp-2 leading-snug">
@@ -151,6 +198,7 @@ export default function EventCard({
           {actionLabel}
         </button>
       )}
+      </div>
     </div>
   );
 }

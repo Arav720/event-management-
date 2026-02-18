@@ -56,8 +56,23 @@ export default function EventDetailModal({
 
       {/* Modal */}
       <div className="relative bg-card rounded-2xl border border-border shadow-xl w-full max-w-lg max-h-[85vh] overflow-y-auto animate-scale-in">
+        {/* Event Image Banner */}
+        {event.image && event.image.trim() !== '' && (
+          <div className="relative h-48 overflow-hidden rounded-t-2xl">
+            <img 
+              src={event.image} 
+              alt={event.title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.parentElement?.remove();
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          </div>
+        )}
+        
         {/* Header */}
-        <div className="sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border px-6 py-4 flex items-start justify-between rounded-t-2xl z-10">
+        <div className="sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border px-6 py-4 flex items-start justify-between z-10">
           <div className="flex-1 pr-4">
             <span
               className={`inline-block text-[11px] font-semibold px-2.5 py-1 rounded-full capitalize mb-2 ${
